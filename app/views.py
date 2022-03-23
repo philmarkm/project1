@@ -7,7 +7,7 @@ This file creates your application.
 
 import config
 from app import app, db
-from flask import flash, render_template, request, redirect, send_from_directory, url_for
+from flask import flash, render_template, request, send_from_directory, url_for
 from app.forms import AddProperty
 from werkzeug.utils import secure_filename
 from app.models import Property
