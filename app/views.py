@@ -1,13 +1,19 @@
 """
-Flask Documentation:     https://flask.palletsprojects.com/
-Jinja2 Documentation:    https://jinja.palletsprojects.com/
-Werkzeug Documentation:  https://werkzeug.palletsprojects.com/
+Flask Documentation:     http://flask.pocoo.org/docs/
+Jinja2 Documentation:    http://jinja.pocoo.org/2/documentation/
+Werkzeug Documentation:  http://werkzeug.pocoo.org/documentation/
 This file creates your application.
 """
 
-from app import app
-from flask import render_template, request, redirect, url_for
-
+import config
+from app import app, db
+from flask import flash, render_template, request, redirect, send_from_directory, url_for
+from app.forms import AddProperty
+from werkzeug.utils import secure_filename
+from app.models import Property
+import os
+import locale 
+locale.setlocale( locale.LC_ALL, 'en_CA.UTF-8' )
 
 ###
 # Routing for your application.
@@ -22,8 +28,45 @@ def home():
 @app.route('/about/')
 def about():
     """Render the website's about page."""
-    return render_template('about.html', name="Mary Jane")
+    return render_template('about.html', name="Philmark Miller")
 
+@app.route('/properties')
+def displayproperties():
+    if request.method =='GET':
+        propertylst = Property.query.all()
+        print(propertylst)
+        return render_template('properties.html', proplst =propertylst, local =locale)
+    
+
+@app.route('/properties/create', METHOD =['GET', 'POST'])
+def addproperty():
+    formobject = AddProperty()
+    if request.method == 'GET':
+         return render_template('addproperty.html', formobj = formobject)
+    if request.method == 'POST':
+        if formobject.validate_on_submit():
+            fileobj = request.files['photo']
+            newname = secure_filename(fileobj.filename)
+        if fileobj and newname != "" :
+                 newproperty = Property(request.form['title'],request.form['numberBeds'], request.form['numberRooms'], request.form['location'],request.form['price'],request.form['description'],request.form['Type'], newname)
+                 db.session.add(newproperty)
+                 db.session.commit()
+                 fileobj.save(os.path.join(app.config['UPLOAD_FOLDER'][1:],newname))
+                 print(app.config['UPLOAD_FOLDER']+ '\\'+ newname)
+                 print(newname)
+                 flash('Property Sucessfully Added', 'success')
+
+@app.route('/properties/<propertyid>')
+def displayproperty(propertyid):
+        newproperty = Property.query.filter(Property.id==propertyid).all()[0]
+
+
+
+
+
+
+
+        return render_template("viewproperty.html" , singleproperty = newproperty, local=locale)
 
 ###
 # The functions below should be applicable to all Flask apps.
@@ -37,6 +80,11 @@ def flash_errors(form):
                 getattr(form, field).label.text,
                 error
             ), 'danger')
+
+@app.route('/iploades/<filename>')
+def get_image(filename):
+        return send_from_directory(app, config['UPLOAD_FOLDER'], filename)
+
 
 @app.route('/<file_name>.txt')
 def send_text_file(file_name):

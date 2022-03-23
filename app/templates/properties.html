@@ -1,0 +1,17 @@
+{% block main %}
+<h2>Properties</h2>
+<section id ="propertyset">
+    {% for property in proplist: %}
+    <div class="card">
+        <img class ="card-img-top" src="{{url_for('static', filename = 'images/' + property.photo)}}" alt="Property Image">
+    <div class="card-body">
+        <h5 class="card-title">{{property.proeprtytitile}}</h5>
+        <span><img class="locationimg" src="{{url_for('static', filename = 'images/R.jpg)}}"/>{{property.location}} </span>
+        <span class="price">{{local.currency(property.price, grouping= True)}}</span>
+    </div>
+    <a href="{{url_for('displayproperty', propertid = property.id)}}" class="cardbtn"> View Property </a>
+    </div>
+    {% endfor %}
+</section>
+
+{% endblock %}
